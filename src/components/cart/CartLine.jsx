@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import Icon from '@/components/common/Icon.jsx'
 import { formatPrice } from '@/utils/formatPrice.js'
 import { formatSize } from '@/utils/productHelpers.js'
@@ -9,13 +8,7 @@ export default function CartLine({ item }) {
   const dispatch = useAppDispatch()
 
   return (
-    <motion.div
-      className="cart-line"
-      layout
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: 'auto' }}
-      exit={{ opacity: 0, height: 0 }}
-    >
+    <div className="cart-line">
       <img
         className="cart-line__img"
         src={item.imageUrl}
@@ -68,6 +61,6 @@ export default function CartLine({ item }) {
           </span>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }

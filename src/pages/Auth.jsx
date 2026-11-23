@@ -30,14 +30,16 @@ export default function Auth() {
   const error = useAppSelector(selectAuthError)
   const wishlistIds = useAppSelector(selectWishlistIds)
 
-  // Check for pre-filled data from checkout redirect
-  const prefillData = location.state || {}
+  // Data passed from the checkout confirmation screen (pre-filled form,
+  // starting tab). Read once on mount so later renders don't depend on it.
+  const [arrival] = useState(() => location.state ?? {})
   const {
     prefillEmail,
     prefillName,
     mode: initialMode,
     tab: initialTab
-  } = prefillData
+  } = arrival
+  const cameFromCheckout = Object.keys(arrival).length > 0
 
   const [mode, setMode] = useState(
     initialMode === 'signup' ? 'signup' : 'login'
@@ -79,20 +81,8 @@ export default function Auth() {
     setFormErrors({})
   }, [mode, dispatch])
 
-  // Clear location state after consuming it (prevents stale prefill on refresh)
-  useEffect(() => {
-    if (prefillEmail || prefillName) {
-      window.history.replaceState({}, document.title)
-    }
-  }, [prefillEmail, prefillName])
-
   const update = (key) => (e) =>
     setForm((f) => ({ ...f, [key]: e.target.value }))
-
-  // Users arriving from the post-checkout prompt carry prefill state; send
-  // them to their account so they land on the now-populated order history,
-  // not back on the stale confirmation screen. Everyone else goes back.
-  const cameFromCheckout = Boolean(prefillEmail || prefillName)
 
   const submit = async (e) => {
     e.preventDefault()
@@ -113,7 +103,11 @@ export default function Auth() {
     if (action.fulfilled.match(result)) {
       dispatch(addToast(`Welcome${mode === 'signup' ? '' : ' back'}!`))
       if (cameFromCheckout) {
+        // Coming from the order confirmation: show the account (orders).
         navigate('/account', { replace: true })
+      } else if (location.key === 'default') {
+        // This page was opened directly, so there is no page to go back to.
+        navigate('/', { replace: true })
       } else {
         navigate(-1)
       }
@@ -149,18 +143,21 @@ export default function Auth() {
         <div className="account__tabs">
           <button
             className={activeTab === 'overview' ? 'is-active' : ''}
+            aria-pressed={activeTab === 'overview'}
             onClick={() => setActiveTab('overview')}
           >
             Overview
           </button>
           <button
             className={activeTab === 'orders' ? 'is-active' : ''}
+            aria-pressed={activeTab === 'orders'}
             onClick={() => setActiveTab('orders')}
           >
             Order History
           </button>
           <button
             className={activeTab === 'wishlist' ? 'is-active' : ''}
+            aria-pressed={activeTab === 'wishlist'}
             onClick={() => setActiveTab('wishlist')}
           >
             Wishlist ({wishlistIds.length})
@@ -198,25 +195,25 @@ export default function Auth() {
               </div>
 
               <div className="account__section">
-                <h3>Quick Actions</h3>
+                <h2>Quick Actions</h2>
                 <div className="account__actions">
-                  <button
+                  <Link
+                    to="/shop"
                     className="btn"
-                    onClick={() => navigate('/shop')}
                   >
                     Continue shopping
-                  </button>
-                  <button
+                  </Link>
+                  <Link
+                    to="/wishlist"
                     className="btn btn--outline"
-                    onClick={() => navigate('/wishlist')}
                   >
                     View wishlist
-                  </button>
+                  </Link>
                 </div>
               </div>
 
               <div className="account__section">
-                <h3>Account Details</h3>
+                <h2>Account Details</h2>
                 <div className="account__details">
                   <div className="account__detail">
                     <span>Name</span>
@@ -397,14 +394,14 @@ export default function Auth() {
                     name="bag"
                     size={48}
                   />
-                  <h3>No orders yet</h3>
+                  <h2>No orders yet</h2>
                   <p>When you place an order, it will appear here.</p>
-                  <button
+                  <Link
+                    to="/shop"
                     className="btn"
-                    onClick={() => navigate('/shop')}
                   >
                     Start shopping
-                  </button>
+                  </Link>
                 </div>
               )}
             </div>
@@ -440,23 +437,23 @@ export default function Auth() {
                     name="heart"
                     size={48}
                   />
-                  <h3>Your wishlist is empty</h3>
+                  <h2>Your wishlist is empty</h2>
                   <p>Save items you love by tapping the heart icon.</p>
-                  <button
+                  <Link
+                    to="/shop"
                     className="btn"
-                    onClick={() => navigate('/shop')}
                   >
                     Explore products
-                  </button>
+                  </Link>
                 </div>
               )}
               {wishlistProducts.length > 0 && (
-                <button
+                <Link
+                  to="/wishlist"
                   className="btn btn--outline"
-                  onClick={() => navigate('/wishlist')}
                 >
                   View all wishlist items
-                </button>
+                </Link>
               )}
             </div>
           )}
@@ -484,7 +481,7 @@ export default function Auth() {
           <ul className="auth__aside-perks">
             <li>✓ Saved shipping address — one-tap checkout</li>
             <li>✓ Full order history, guest orders included</li>
-            <li>✓ Wishlist that persists across devices</li>
+            <li>✓ Wishlist saved in your browser</li>
             <li>✓ Early access to new arrivals &amp; sales</li>
           </ul>
         </div>
@@ -504,15 +501,17 @@ export default function Auth() {
           <div className="auth__tabs">
             <button
               className={mode === 'login' ? 'is-active' : ''}
+              aria-pressed={mode === 'login'}
               onClick={() => setMode('login')}
             >
               Sign in
             </button>
             <button
               className={mode === 'signup' ? 'is-active' : ''}
+              aria-pressed={mode === 'signup'}
               onClick={() => setMode('signup')}
             >
-              Register
+              Create account
             </button>
           </div>
 
@@ -532,7 +531,12 @@ export default function Auth() {
                   aria-invalid={!!formErrors.name}
                 />
                 {formErrors.name && (
-                  <em className="field__err">{formErrors.name}</em>
+                  <em
+                    className="field__err"
+                    role="alert"
+                  >
+                    {formErrors.name}
+                  </em>
                 )}
               </label>
             )}
@@ -575,7 +579,12 @@ export default function Auth() {
                 </button>
               </div>
               {formErrors.password && (
-                <em className="field__err">{formErrors.password}</em>
+                <em
+                  className="field__err"
+                  role="alert"
+                >
+                  {formErrors.password}
+                </em>
               )}
             </div>
 

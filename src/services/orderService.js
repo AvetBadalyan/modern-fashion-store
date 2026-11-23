@@ -67,7 +67,7 @@ export const createOrder = ({
   total,
   shippingAddress
 }) => ({
-  id: `LX-${Math.floor(100000 + Math.random() * 900000)}`,
+  id: `MD-${Math.floor(100000 + Math.random() * 900000)}`,
   createdAt: new Date().toISOString(),
   date: new Date().toLocaleDateString('en-US', {
     year: 'numeric',

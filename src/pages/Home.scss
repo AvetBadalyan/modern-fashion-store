@@ -69,6 +69,21 @@
     max-width: 640px;
   }
 
+  // Staggered slide-up on load. Only `transform` is animated, never
+  // `opacity`: the browser ignores fully transparent text when it picks the
+  // Largest Contentful Paint element, so fading would delay LCP.
+  &__content > * {
+    animation: hero-slide-up 0.7s $ease-out both;
+  }
+  &__content > :nth-child(2) {
+    animation-delay: 0.1s;
+  }
+  &__content > :nth-child(3) {
+    animation-delay: 0.2s;
+  }
+  &__content > :nth-child(4) {
+    animation-delay: 0.3s;
+  }
   &__eyebrow {
     font-size: $fs-sm;
     font-weight: $fw-semibold;
@@ -102,6 +117,10 @@
       --btn-fg: #{$color-ink};
       border-color: $color-white;
 
+      &:focus-visible {
+        outline-color: $color-white;
+      }
+
       &:hover:not(:disabled) {
         background: rgba($color-white, 0.85);
       }
@@ -109,6 +128,14 @@
   }
 }
 
+@keyframes hero-slide-up {
+  from {
+    transform: translateY(20px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
 @keyframes hero-zoom {
   from {
     transform: scale(1.08);
@@ -134,6 +161,8 @@
   position: relative;
   overflow: hidden;
   border-radius: $radius-lg;
+  display: block;
+  height: 100%;
   min-height: 220px;
   text-align: left;
   cursor: pointer;
@@ -204,9 +233,17 @@
       transform $transition-base $ease-out;
   }
 
-  &:hover &__cta {
+  &:hover &__cta,
+  &:focus-visible &__cta {
     opacity: 1;
     transform: translateY(0);
+  }
+  // Touch screens have no hover, so always show the call to action there.
+  @media (hover: none) {
+    &__cta {
+      opacity: 1;
+      transform: none;
+    }
   }
 }
 
@@ -252,13 +289,13 @@
     }
 
     .btn {
-      --btn-bg: var(--color-accent);
+      --btn-bg: var(--color-accent-fill);
       --btn-fg: #ffffff;
-      border-color: var(--color-accent);
+      border-color: var(--color-accent-fill);
 
       &:hover:not(:disabled) {
-        background: var(--color-accent-hover);
-        border-color: var(--color-accent-hover);
+        background: var(--color-accent-fill-hover);
+        border-color: var(--color-accent-fill-hover);
       }
     }
   }

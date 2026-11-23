@@ -30,7 +30,7 @@ const ALL_COLORS = (() => {
 function Section({ title, children }) {
   return (
     <div className="filter-section">
-      <h4 className="filter-section__title">{title}</h4>
+      <h3 className="filter-section__title">{title}</h3>
       {children}
     </div>
   )
@@ -44,10 +44,10 @@ export default function FilterSidebar() {
   return (
     <div className="filters">
       <div className="filters__head">
-        <span>
+        <h2 className="filters__title">
           Filters
           {activeCount > 0 && <em className="filters__badge">{activeCount}</em>}
-        </span>
+        </h2>
         {activeCount > 0 && (
           <button
             className="filters__clear"

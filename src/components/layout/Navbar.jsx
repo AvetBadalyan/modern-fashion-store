@@ -1,18 +1,12 @@
 import Icon from '@/components/common/Icon.jsx'
 import { CATEGORIES } from '@/data/products.js'
-import { useDebounce } from '@/hooks/useDebounce.js'
 import { useFocusTrap } from '@/hooks/useFocusTrap.js'
 import { useModalDismiss } from '@/hooks/useModalDismiss.js'
 import { selectIsAuthenticated, selectUser } from '@/store/authSlice.js'
 import { selectCartCount } from '@/store/cartSlice.js'
-import { setCategory, setSearch } from '@/store/filtersSlice.js'
+import { selectSearch, setSearch } from '@/store/filtersSlice.js'
 import { useAppDispatch, useAppSelector } from '@/store/hooks.js'
-import {
-  openCart,
-  selectCartOpen,
-  selectTheme,
-  toggleTheme
-} from '@/store/uiSlice.js'
+import { openCart, selectTheme, toggleTheme } from '@/store/uiSlice.js'
 import { selectWishlistCount } from '@/store/wishlistSlice.js'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
@@ -28,35 +22,15 @@ export default function Navbar() {
   const wishCount = useAppSelector(selectWishlistCount)
   const isAuth = useAppSelector(selectIsAuthenticated)
   const user = useAppSelector(selectUser)
-  const cartOpen = useAppSelector(selectCartOpen)
+  // The search text lives in Redux so the shop page, the "clear" chip and
+  // this input always show the same value.
+  const search = useAppSelector(selectSearch)
   const theme = useAppSelector(selectTheme)
 
   const [scrolled, setScrolled] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [term, setTerm] = useState('')
-
-  // Debounce search term (300ms) so we filter as the user types
-  // without dispatching on every keystroke.
-  const debouncedTerm = useDebounce(term, 300)
-
-  // Sync the debounced term into Redux. This effect has a single job —
-  // keep the search filter in step with the input. Navigation and category
-  // are handled separately (below / by the Shop route), so they don't race.
-  const trimmed = debouncedTerm.trim()
-  useEffect(() => {
-    dispatch(setSearch(trimmed))
-  }, [trimmed, dispatch])
-
-  // When the user starts typing a query from somewhere other than the shop,
-  // take them to the shop so they can see results. We only navigate — we do
-  // not touch the category, so the current /shop/:categoryId stays intact.
   const onShop = location.pathname.startsWith('/shop')
-  useEffect(() => {
-    if (trimmed && !onShop) {
-      navigate('/shop')
-    }
-  }, [trimmed, onShop, navigate])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12)
@@ -82,26 +56,24 @@ export default function Navbar() {
   useFocusTrap(menuRef, menuOpen)
   useModalDismiss(menuOpen, () => setMenuOpen(false))
 
-  const submitSearch = (e) => {
-    e.preventDefault()
-    // Filtering already happens via the debounced effect. Pressing Enter is a
-    // shortcut: flush the search immediately, then close the bar and make sure
-    // we're on the shop page. Category is left untouched.
-    const value = term.trim()
-    if (!value) return
-    dispatch(setSearch(value))
-    setSearchOpen(false)
-    setMenuOpen(false)
-    if (!location.pathname.startsWith('/shop')) {
-      navigate('/shop')
-    }
+  // Typing filters the shop live. If the visitor is on another page, take
+  // them to the shop so they can see the results.
+  const onSearchChange = (e) => {
+    dispatch(setSearch(e.target.value))
+    if (e.target.value.trim() && !onShop) navigate('/shop')
   }
 
-  const goCategory = (id) => {
-    // Clearing the local term also clears the debounced search (via the sync
-    // effect), so picking a category doesn't leave a stale query fighting it.
-    setTerm('')
-    dispatch(setCategory(id))
+  const submitSearch = (e) => {
+    e.preventDefault()
+    if (!search.trim()) return
+    setSearchOpen(false)
+    if (!onShop) navigate('/shop')
+  }
+
+  // The category itself comes from the URL (Shop reads /shop/:categoryId).
+  // Here we only clear any old search and close the mobile menu.
+  const goCategory = () => {
+    dispatch(setSearch(''))
     setMenuOpen(false)
   }
 
@@ -121,7 +93,7 @@ export default function Navbar() {
           <Link
             to="/"
             className="navbar__logo"
-            aria-label="Home"
+            aria-label="MODERN home"
           >
             MODERN
           </Link>
@@ -133,7 +105,8 @@ export default function Navbar() {
           >
             <NavLink
               to="/shop"
-              onClick={() => goCategory('all')}
+              end
+              onClick={goCategory}
             >
               All
             </NavLink>
@@ -141,7 +114,7 @@ export default function Navbar() {
               <NavLink
                 key={c.id}
                 to={`/shop/${c.id}`}
-                onClick={() => goCategory(c.id)}
+                onClick={goCategory}
               >
                 {c.title}
               </NavLink>
@@ -164,6 +137,7 @@ export default function Navbar() {
           <button
             className="navbar__icon-btn"
             aria-label="Search"
+            aria-expanded={searchOpen}
             onClick={() => setSearchOpen((s) => !s)}
           >
             <Icon name="search" />
@@ -197,7 +171,6 @@ export default function Navbar() {
           <button
             className="navbar__icon-btn"
             aria-label={`Cart, ${cartCount} items`}
-            aria-expanded={cartOpen}
             onClick={() => dispatch(openCart())}
           >
             <Icon name="bag" />
@@ -214,6 +187,7 @@ export default function Navbar() {
           <motion.form
             className="navbar__search container"
             onSubmit={submitSearch}
+            onKeyDown={(e) => e.key === 'Escape' && setSearchOpen(false)}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -226,17 +200,17 @@ export default function Navbar() {
             <input
               autoFocus
               type="search"
-              value={term}
-              onChange={(e) => setTerm(e.target.value)}
+              value={search}
+              onChange={onSearchChange}
               placeholder="Search for products, brands, styles…"
               aria-label="Search products"
             />
-            {term && (
+            {search && (
               <button
                 type="button"
                 className="navbar__search-clear"
                 aria-label="Clear search"
-                onClick={() => setTerm('')}
+                onClick={() => dispatch(setSearch(''))}
               >
                 <Icon
                   name="close"
@@ -284,7 +258,7 @@ export default function Navbar() {
                 <nav className="navbar__mobile-nav">
                   <Link
                     to="/shop"
-                    onClick={() => goCategory('all')}
+                    onClick={goCategory}
                   >
                     All Products
                   </Link>
@@ -292,7 +266,7 @@ export default function Navbar() {
                     <Link
                       key={c.id}
                       to={`/shop/${c.id}`}
-                      onClick={() => goCategory(c.id)}
+                      onClick={goCategory}
                     >
                       {c.title}
                     </Link>

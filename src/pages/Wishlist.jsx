@@ -4,12 +4,11 @@ import { getProductById } from '@/data/products.js'
 import { useAppDispatch, useAppSelector } from '@/store/hooks.js'
 import { usePageTitle } from '@/hooks/usePageTitle.js'
 import { clearWishlist, selectWishlistIds } from '@/store/wishlistSlice.js'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import './Wishlist.scss'
 
 export default function Wishlist() {
   const dispatch = useAppDispatch()
-  const navigate = useNavigate()
   usePageTitle('Wishlist')
   const ids = useAppSelector(selectWishlistIds)
   const products = ids.map(getProductById).filter(Boolean)
@@ -55,14 +54,14 @@ export default function Wishlist() {
               name="heart"
               size={48}
             />
-            <h3>Your wishlist is empty</h3>
+            <h2>Your wishlist is empty</h2>
             <p>Tap the heart on any product to save it here for later.</p>
-            <button
+            <Link
+              to="/shop"
               className="btn"
-              onClick={() => navigate('/shop')}
             >
               Explore products
-            </button>
+            </Link>
           </div>
         )}
       </div>

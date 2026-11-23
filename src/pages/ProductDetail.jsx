@@ -16,15 +16,16 @@ import { recentlyViewedService } from '@/services/recentlyViewedService.js'
 import { addToCart } from '@/store/cartSlice.js'
 import { useAppDispatch, useAppSelector } from '@/store/hooks.js'
 import { addToast, openCart } from '@/store/uiSlice.js'
-import { toggleWishlist } from '@/store/wishlistSlice.js'
+import { toggleWishlistItem } from '@/store/wishlistSlice.js'
 import { isOneSize } from '@/utils/productHelpers.js'
+import { FREE_SHIPPING_THRESHOLD } from '@/data/store.js'
 import { motion } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import './ProductDetail.scss'
 
 const perks = [
-  { icon: 'truck', text: 'Free shipping over $150' },
+  { icon: 'truck', text: `Free shipping over $${FREE_SHIPPING_THRESHOLD}` },
   { icon: 'refresh', text: 'Free 30-day returns' },
   { icon: 'shield', text: 'Secure checkout' }
 ]
@@ -49,6 +50,7 @@ export default function ProductDetail() {
   const [activeImg, setActiveImg] = useState(0)
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false)
   const [recentIds, setRecentIds] = useState([])
+  const sizeSelectorRef = useRef(null)
 
   useEffect(() => {
     if (product) {
@@ -99,9 +101,10 @@ export default function ProductDetail() {
       // Toast + scroll so the shopper gets feedback even when adding from
       // the sticky bar with the size selector scrolled out of view.
       dispatch(addToast('Please select a size', 'error'))
-      document
-        .querySelector('.pdp__selector .size-selector')
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      sizeSelectorRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      })
       return
     }
     dispatch(addToCart({ product, size, color, quantity: qty }))
@@ -197,7 +200,10 @@ export default function ProductDetail() {
           </div>
 
           {!isAccessory && (
-            <div className="pdp__selector">
+            <div
+              className="pdp__selector"
+              ref={sizeSelectorRef}
+            >
               <div className="pdp__selector-head">
                 <span className="pdp__label">
                   Size
@@ -267,7 +273,7 @@ export default function ProductDetail() {
 
             <button
               className={`pdp__wish ${wished ? 'is-active' : ''}`}
-              onClick={() => dispatch(toggleWishlist(product.id))}
+              onClick={() => dispatch(toggleWishlistItem(product.id))}
               aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'}
               aria-pressed={wished}
             >

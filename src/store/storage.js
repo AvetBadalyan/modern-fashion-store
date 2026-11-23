@@ -11,6 +11,13 @@ export const loadState = (key, fallback) => {
   }
 }
 
+// Like loadState, but guarantees an array. Stored JSON can be edited or
+// corrupted, and a non-array would crash code that calls .map/.reduce on it.
+export const loadList = (key) => {
+  const value = loadState(key, [])
+  return Array.isArray(value) ? value : []
+}
+
 export const saveState = (key, value) => {
   try {
     localStorage.setItem(PREFIX + key, JSON.stringify(value))

@@ -64,6 +64,7 @@ export default filtersSlice.reducer
 
 // --- Selectors -------------------------------------------------------------
 export const selectFilters = (state) => state.filters
+export const selectSearch = (state) => state.filters.search
 
 const sortProducts = (products, sort) => {
   const sorted = [...products]

@@ -4,6 +4,9 @@
 	"version": "2.0.0",
 	"type": "module",
 	"description": "Modern fashion e-commerce storefront built with React 19, Redux Toolkit and Vite.",
+	"engines": {
+		"node": ">=18"
+	},
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",

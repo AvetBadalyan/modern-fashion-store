@@ -1,11 +1,16 @@
 import Icon from '@/components/common/Icon.jsx'
 import { CATEGORIES } from '@/data/products.js'
+import { FREE_SHIPPING_THRESHOLD } from '@/data/store.js'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import './Footer.scss'
 
 const perks = [
-  { icon: 'truck', title: 'Free shipping', text: 'On all orders over $150' },
+  {
+    icon: 'truck',
+    title: 'Free shipping',
+    text: `On all orders over $${FREE_SHIPPING_THRESHOLD}`
+  },
   { icon: 'refresh', title: 'Easy returns', text: '30-day free returns' },
   { icon: 'shield', title: 'Secure checkout', text: 'Encrypted & protected' }
 ]
@@ -52,7 +57,7 @@ export default function Footer() {
         </div>
 
         <div className="footer__col">
-          <h4>Shop</h4>
+          <h2>Shop</h2>
           <Link to="/shop">All Products</Link>
           {CATEGORIES.map((c) => (
             <Link
@@ -65,7 +70,7 @@ export default function Footer() {
         </div>
 
         <div className="footer__col">
-          <h4>Help</h4>
+          <h2>Help</h2>
           <Link to="/shipping-returns">Shipping &amp; Returns</Link>
           <Link to="/size-guide">Size Guide</Link>
           <Link to="/account">Track Order</Link>
@@ -73,7 +78,7 @@ export default function Footer() {
         </div>
 
         <div className="footer__newsletter">
-          <h4>Join the list</h4>
+          <h2>Join the list</h2>
           <p>Early access to new arrivals and members-only offers.</p>
           {done ? (
             <p

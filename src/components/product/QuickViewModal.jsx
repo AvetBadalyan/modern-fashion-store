@@ -14,7 +14,7 @@ import {
   openCart,
   selectQuickViewId
 } from '@/store/uiSlice.js'
-import { toggleWishlist } from '@/store/wishlistSlice.js'
+import { toggleWishlistItem } from '@/store/wishlistSlice.js'
 import { isOneSize } from '@/utils/productHelpers.js'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
@@ -159,7 +159,7 @@ export default function QuickViewModal() {
                 </button>
                 <button
                   className={`quickview__wish ${wished ? 'is-active' : ''}`}
-                  onClick={() => dispatch(toggleWishlist(product.id))}
+                  onClick={() => dispatch(toggleWishlistItem(product.id))}
                   aria-label={
                     wished ? 'Remove from wishlist' : 'Add to wishlist'
                   }

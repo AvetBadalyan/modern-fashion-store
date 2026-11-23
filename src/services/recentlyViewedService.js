@@ -6,7 +6,7 @@
 //  off. Kept as a small abstraction (like authService / orderService) so it
 //  could later be backed by an API without touching the UI.
 // ============================================================
-import { loadState, saveState } from '@/store/storage.js'
+import { loadList, saveState } from '@/store/storage.js'
 
 const KEY = 'recentlyViewed'
 const MAX = 8
@@ -14,13 +14,13 @@ const MAX = 8
 export const recentlyViewedService = {
   /** Ordered list of recently viewed product ids (newest first). */
   list() {
-    return loadState(KEY, [])
+    return loadList(KEY)
   },
 
   /** Record a view: move the id to the front, de-duplicated, capped at MAX. */
   add(id) {
     if (!id) return
-    const existing = loadState(KEY, []).filter((x) => x !== id)
+    const existing = loadList(KEY).filter((x) => x !== id)
     const next = [id, ...existing].slice(0, MAX)
     saveState(KEY, next)
     return next

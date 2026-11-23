@@ -1,4 +1,5 @@
 import Icon from '@/components/common/Icon.jsx'
+import { FREE_SHIPPING_THRESHOLD, SHIPPING_COST } from '@/data/store.js'
 import { usePageTitle } from '@/hooks/usePageTitle.js'
 import { authService } from '@/services/authService.js'
 import { createOrder, orderService } from '@/services/orderService.js'
@@ -13,12 +14,9 @@ import { addToast } from '@/store/uiSlice.js'
 import { formatPrice } from '@/utils/formatPrice.js'
 import { formatSize } from '@/utils/productHelpers.js'
 import { motion } from 'framer-motion'
-import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import './Checkout.scss'
-
-const SHIP_THRESHOLD = 150
-const SHIP_COST = 12
 
 const initialForm = {
   fullName: '',
@@ -32,7 +30,6 @@ const initialForm = {
 export default function Checkout() {
   const dispatch = useAppDispatch()
   usePageTitle('Checkout')
-  const navigate = useNavigate()
   const items = useAppSelector(selectCartItems)
   const subtotal = useAppSelector(selectCartSubtotal)
   const user = useAppSelector(selectUser)
@@ -41,7 +38,7 @@ export default function Checkout() {
   const [errors, setErrors] = useState({})
   const [placed, setPlaced] = useState(false)
   const [orderData, setOrderData] = useState(null)
-  const [isPlacing, setIsPlacing] = useState(false)
+  const confirmHeadingRef = useRef(null)
 
   // Auto-fill form from saved address (for signed-in users) or basic user info
   useEffect(() => {
@@ -68,7 +65,14 @@ export default function Checkout() {
     }
   }, [user])
 
-  const shipping = subtotal >= SHIP_THRESHOLD || subtotal === 0 ? 0 : SHIP_COST
+  // After placing the order the page content changes completely, so move
+  // keyboard/screen-reader focus to the confirmation heading.
+  useEffect(() => {
+    if (placed) confirmHeadingRef.current?.focus()
+  }, [placed])
+
+  const shipping =
+    subtotal >= FREE_SHIPPING_THRESHOLD || subtotal === 0 ? 0 : SHIPPING_COST
   const total = subtotal + shipping
 
   const update = (key) => (e) => {
@@ -79,32 +83,37 @@ export default function Checkout() {
   const validate = () => {
     const next = {}
     if (!form.fullName.trim()) next.fullName = 'Required'
-    if (!/^\S+@\S+\.\S+$/.test(form.email)) next.email = 'Enter a valid email'
+    if (!/^\S+@\S+\.\S+$/.test(form.email.trim()))
+      next.email = 'Enter a valid email'
     if (!form.address.trim()) next.address = 'Required'
     if (!form.city.trim()) next.city = 'Required'
-    if (!/^[A-Za-z0-9 -]{3,10}$/.test(form.postalCode))
+    if (!/^[A-Za-z0-9 -]{3,10}$/.test(form.postalCode.trim()))
       next.postalCode = 'Enter a valid postal code'
     if (!form.country.trim()) next.country = 'Required'
     setErrors(next)
-    return Object.keys(next).length === 0
+    return next
   }
 
-  const placeOrder = async (e) => {
+  const placeOrder = (e) => {
     e.preventDefault()
-    // Guard against double-submit (double-click / Enter spam creating dupes).
-    if (isPlacing) return
-    if (!validate()) {
+    const formErrors = validate()
+    const invalidFields = Object.keys(formErrors)
+    if (invalidFields.length > 0) {
       dispatch(addToast('Please check the highlighted fields', 'error'))
+      // Move focus to the first field with a problem (inputs are named
+      // after the form keys, so `elements` can look them up).
+      e.currentTarget.elements[invalidFields[0]]?.focus()
       return
     }
 
+    // Trim the text so " Jane " and "Jane" are stored the same way.
     const shippingAddress = {
-      fullName: form.fullName,
-      email: form.email,
-      address: form.address,
-      city: form.city,
-      postalCode: form.postalCode,
-      country: form.country
+      fullName: form.fullName.trim(),
+      email: form.email.trim(),
+      address: form.address.trim(),
+      city: form.city.trim(),
+      postalCode: form.postalCode.trim(),
+      country: form.country.trim()
     }
 
     // Build the order — keyed by checkout email for reconciliation
@@ -116,7 +125,6 @@ export default function Checkout() {
       shippingAddress
     })
 
-    setIsPlacing(true)
     try {
       // orderService.add throws if persistence fails (e.g. storage full).
       orderService.add(newOrder)
@@ -139,8 +147,6 @@ export default function Checkout() {
           'error'
         )
       )
-    } finally {
-      setIsPlacing(false)
     }
   }
 
@@ -162,11 +168,17 @@ export default function Checkout() {
             />
           </span>
           <p className="overline">Thank you</p>
-          <h1>Your order is confirmed</h1>
+          <h1
+            ref={confirmHeadingRef}
+            tabIndex={-1}
+          >
+            Your order is confirmed
+          </h1>
           <p className="checkout-confirm__sub">
-            A confirmation has been sent to{' '}
-            <strong>{orderData.shippingAddress.email}</strong>. Your order
-            number is <strong>{orderData.id}</strong>.
+            Your order number is <strong>{orderData.id}</strong>. This is a demo
+            store, so no email is sent. You can find the order under{' '}
+            <strong>{orderData.shippingAddress.email}</strong> in your order
+            history.
           </p>
 
           {/* Account creation prompt for guest users */}
@@ -198,18 +210,19 @@ export default function Checkout() {
           )}
 
           <div className="checkout-confirm__actions">
-            <button
+            <Link
+              to="/account"
+              state={{ tab: 'orders' }}
               className="btn"
-              onClick={() => navigate('/account', { state: { tab: 'orders' } })}
             >
               {isGuest ? 'Sign in' : 'View order history'}
-            </button>
-            <button
+            </Link>
+            <Link
+              to="/shop"
               className="btn btn--outline"
-              onClick={() => navigate('/shop')}
             >
               Continue shopping
-            </button>
+            </Link>
           </div>
         </motion.div>
       </div>
@@ -263,6 +276,8 @@ export default function Checkout() {
             </div>
           )}
 
+          <p className="checkout__required-note">All fields are required.</p>
+
           <fieldset className="checkout__fieldset">
             <legend>Contact</legend>
             <label className="field">
@@ -271,12 +286,19 @@ export default function Checkout() {
                 type="text"
                 value={form.fullName}
                 onChange={update('fullName')}
+                name="fullName"
+                aria-required="true"
                 aria-invalid={!!errors.fullName}
                 placeholder="Jane Doe"
                 autoComplete="name"
               />
               {errors.fullName && (
-                <em className="field__err">{errors.fullName}</em>
+                <em
+                  className="field__err"
+                  role="alert"
+                >
+                  {errors.fullName}
+                </em>
               )}
             </label>
             <label className="field">
@@ -285,11 +307,20 @@ export default function Checkout() {
                 type="email"
                 value={form.email}
                 onChange={update('email')}
+                name="email"
+                aria-required="true"
                 aria-invalid={!!errors.email}
                 placeholder="you@example.com"
                 autoComplete="email"
               />
-              {errors.email && <em className="field__err">{errors.email}</em>}
+              {errors.email && (
+                <em
+                  className="field__err"
+                  role="alert"
+                >
+                  {errors.email}
+                </em>
+              )}
             </label>
           </fieldset>
 
@@ -301,12 +332,19 @@ export default function Checkout() {
                 type="text"
                 value={form.address}
                 onChange={update('address')}
+                name="address"
+                aria-required="true"
                 aria-invalid={!!errors.address}
                 placeholder="123 Market Street"
                 autoComplete="address-line1"
               />
               {errors.address && (
-                <em className="field__err">{errors.address}</em>
+                <em
+                  className="field__err"
+                  role="alert"
+                >
+                  {errors.address}
+                </em>
               )}
             </label>
             <div className="checkout__row">
@@ -316,11 +354,20 @@ export default function Checkout() {
                   type="text"
                   value={form.city}
                   onChange={update('city')}
+                  name="city"
+                  aria-required="true"
                   aria-invalid={!!errors.city}
-                  placeholder="Yerevan"
+                  placeholder="New York"
                   autoComplete="address-level2"
                 />
-                {errors.city && <em className="field__err">{errors.city}</em>}
+                {errors.city && (
+                  <em
+                    className="field__err"
+                    role="alert"
+                  >
+                    {errors.city}
+                  </em>
+                )}
               </label>
               <label className="field">
                 <span>Postal code</span>
@@ -328,12 +375,19 @@ export default function Checkout() {
                   type="text"
                   value={form.postalCode}
                   onChange={update('postalCode')}
+                  name="postalCode"
+                  aria-required="true"
                   aria-invalid={!!errors.postalCode}
-                  placeholder="0010"
+                  placeholder="10001"
                   autoComplete="postal-code"
                 />
                 {errors.postalCode && (
-                  <em className="field__err">{errors.postalCode}</em>
+                  <em
+                    className="field__err"
+                    role="alert"
+                  >
+                    {errors.postalCode}
+                  </em>
                 )}
               </label>
             </div>
@@ -343,12 +397,19 @@ export default function Checkout() {
                 type="text"
                 value={form.country}
                 onChange={update('country')}
+                name="country"
+                aria-required="true"
                 aria-invalid={!!errors.country}
-                placeholder="Armenia"
+                placeholder="United States"
                 autoComplete="country-name"
               />
               {errors.country && (
-                <em className="field__err">{errors.country}</em>
+                <em
+                  className="field__err"
+                  role="alert"
+                >
+                  {errors.country}
+                </em>
               )}
             </label>
           </fieldset>
@@ -356,16 +417,12 @@ export default function Checkout() {
           <button
             className="btn btn--block checkout__submit"
             type="submit"
-            disabled={isPlacing}
-            aria-busy={isPlacing}
           >
             <Icon
               name="shield"
               size={18}
             />{' '}
-            {isPlacing
-              ? 'Placing order…'
-              : `Place order · ${formatPrice(total)}`}
+            Place order · {formatPrice(total)}
           </button>
           <p className="checkout__disclaimer">
             This is a demo store. No payment is taken and no order is shipped.

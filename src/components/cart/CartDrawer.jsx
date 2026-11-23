@@ -13,6 +13,7 @@ import {
 } from '@/store/cartSlice.js'
 import { useAppDispatch, useAppSelector } from '@/store/hooks.js'
 import { closeCart, openQuickView, selectCartOpen } from '@/store/uiSlice.js'
+import { FREE_SHIPPING_THRESHOLD } from '@/data/store.js'
 import { formatPrice } from '@/utils/formatPrice.js'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useRef } from 'react'
@@ -43,8 +44,6 @@ function getSuggestions(items, limit = 3) {
   return suggestions.slice(0, limit)
 }
 
-const FREE_SHIP_THRESHOLD = 150
-
 export default function CartDrawer() {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
@@ -57,8 +56,8 @@ export default function CartDrawer() {
   useFocusTrap(panelRef, open)
   useModalDismiss(open, () => dispatch(closeCart()))
 
-  const remaining = Math.max(0, FREE_SHIP_THRESHOLD - subtotal)
-  const progress = Math.min(100, (subtotal / FREE_SHIP_THRESHOLD) * 100)
+  const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal)
+  const progress = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100)
   const suggestions = getSuggestions(items)
 
   const goCheckout = () => {
@@ -152,7 +151,7 @@ export default function CartDrawer() {
                         >
                           <img
                             src={p.imageUrlSmall}
-                            alt={p.name}
+                            alt=""
                             loading="lazy"
                           />
                           <div className="upsell-item__info">
@@ -164,7 +163,7 @@ export default function CartDrawer() {
                           <button
                             className="upsell-item__add"
                             onClick={() => onSuggest(p.id)}
-                            aria-label={`Add ${p.name}`}
+                            aria-label={`Choose size and color for ${p.name}`}
                           >
                             <Icon
                               name="plus"

@@ -1,34 +1,10 @@
 import Icon from '@/components/common/Icon.jsx'
+import { chartForCategory } from '@/data/sizeCharts.js'
 import { useFocusTrap } from '@/hooks/useFocusTrap.js'
 import { useModalDismiss } from '@/hooks/useModalDismiss.js'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useRef } from 'react'
 import './SizeGuideModal.scss'
-
-// Reference measurement tables. Values are illustrative for a demo store.
-const APPAREL_TABLE = {
-  head: ['Size', 'Chest (in)', 'Waist (in)', 'Hip (in)'],
-  rows: [
-    ['XS', '32-34', '25-27', '35-37'],
-    ['S', '35-37', '28-30', '38-40'],
-    ['M', '38-40', '31-33', '41-43'],
-    ['L', '41-43', '34-36', '44-46'],
-    ['XL', '44-46', '37-40', '47-49']
-  ]
-}
-
-const SHOE_TABLE = {
-  head: ['EU', 'UK', 'US', 'Foot length (cm)'],
-  rows: [
-    ['38', '5', '6', '24.1'],
-    ['39', '6', '7', '24.8'],
-    ['40', '6.5', '7.5', '25.4'],
-    ['41', '7.5', '8.5', '26.0'],
-    ['42', '8', '9', '26.7'],
-    ['43', '9', '10', '27.3'],
-    ['44', '9.5', '10.5', '27.9']
-  ]
-}
 
 export default function SizeGuideModal({ open, onClose, category }) {
   const panelRef = useRef(null)
@@ -36,7 +12,7 @@ export default function SizeGuideModal({ open, onClose, category }) {
   useModalDismiss(open, onClose)
 
   const isShoes = category === 'shoes'
-  const table = isShoes ? SHOE_TABLE : APPAREL_TABLE
+  const table = chartForCategory(category)
 
   return (
     <AnimatePresence>
@@ -63,7 +39,7 @@ export default function SizeGuideModal({ open, onClose, category }) {
             <div className="sizeguide__head">
               <div>
                 <p className="overline">Fit &amp; sizing</p>
-                <h2>{isShoes ? 'Shoe size guide' : 'Size guide'}</h2>
+                <h2>{table.title} size guide</h2>
               </div>
               <button
                 className="sizeguide__close"

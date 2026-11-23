@@ -1,13 +1,21 @@
 import Icon from '@/components/common/Icon.jsx'
 import ProductCard from '@/components/product/ProductCard.jsx'
-import { CATEGORIES, PRODUCTS, img } from '@/data/products.js'
+import { CATEGORIES, PRODUCTS, img, imgSrcSet } from '@/data/products.js'
 import { usePageTitle } from '@/hooks/usePageTitle.js'
-import { setCategory, setNewOnly, setSearch } from '@/store/filtersSlice.js'
+import { resetFilters, setNewOnly } from '@/store/filtersSlice.js'
 import { useAppDispatch } from '@/store/hooks.js'
 import { motion } from 'framer-motion'
-import { useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import './Home.scss'
+
+const HERO_IMAGE = 'photo-1490481651871-ab68de25d43d'
+
+// PRODUCTS never changes at runtime, so these lists are built once.
+const newArrivals = PRODUCTS.filter((p) => p.isNew).slice(0, 4)
+const onSale = PRODUCTS.filter((p) => p.onSale).slice(0, 4)
+const bestSellers = [...PRODUCTS]
+  .sort((a, b) => b.popularity - a.popularity)
+  .slice(0, 8)
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -16,85 +24,56 @@ const fadeUp = {
 
 export default function Home() {
   const dispatch = useAppDispatch()
-  const navigate = useNavigate()
   usePageTitle(null) // Home — use base title
 
-  // Memoized: PRODUCTS is a static module-level constant so these never
-  // change, but useMemo documents intent and guards against future mutations.
-  const newArrivals = useMemo(
-    () => PRODUCTS.filter((p) => p.isNew).slice(0, 4),
-    []
-  )
-  const onSale = useMemo(() => PRODUCTS.filter((p) => p.onSale).slice(0, 4), [])
-  const bestSellers = useMemo(
-    () => [...PRODUCTS].sort((a, b) => b.popularity - a.popularity).slice(0, 8),
-    []
-  )
-
-  const goShop = (category = 'all') => {
-    dispatch(setSearch(''))
-    dispatch(setCategory(category))
-    navigate(category === 'all' ? '/shop' : `/shop/${category}`)
-  }
+  // Called when a link to the shop is clicked: drop old search text and
+  // filters so the visitor sees the whole category. The category itself comes
+  // from the URL (the Shop page reads it).
+  const openShop = () => dispatch(resetFilters())
 
   return (
     <div className="home">
       {/* ---------------- Hero ---------------- */}
+      {/* The hero text uses a CSS animation (see Home.scss) instead of
+          framer-motion, so it can appear before the animation library loads. */}
       <section className="hero">
         <img
           className="hero__bg"
-          src={img('photo-1490481651871-ab68de25d43d', 1600)}
+          src={img(HERO_IMAGE, 1600)}
+          srcSet={imgSrcSet(HERO_IMAGE, [640, 1000, 1600])}
+          sizes="100vw"
           alt=""
           aria-hidden="true"
+          fetchPriority="high"
         />
         <div className="hero__overlay" />
         <div className="hero__content container">
-          <motion.p
-            className="hero__eyebrow"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            Autumn / Winter Collection
-          </motion.p>
-          <motion.h1
-            className="hero__title"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.7 }}
-          >
+          <p className="hero__eyebrow">Autumn / Winter Collection</p>
+          <h1 className="hero__title">
             Dress with
             <br />
             intention.
-          </motion.h1>
-          <motion.p
-            className="hero__sub"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
-          >
+          </h1>
+          <p className="hero__sub">
             Considered essentials and statement pieces, crafted to move with you
             season after season.
-          </motion.p>
-          <motion.div
-            className="hero__cta"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            <button
+          </p>
+          <div className="hero__cta">
+            <Link
+              to="/shop/women"
               className="btn"
-              onClick={() => goShop('women')}
+              onClick={openShop}
             >
               Shop Women
-            </button>
-            <button
+            </Link>
+            <Link
+              to="/shop/men"
               className="btn"
-              onClick={() => goShop('men')}
+              onClick={openShop}
             >
               Shop Men
-            </button>
-          </motion.div>
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -108,7 +87,7 @@ export default function Home() {
           <Link
             to="/shop"
             className="section-head__link"
-            onClick={() => goShop()}
+            onClick={openShop}
           >
             View all{' '}
             <Icon
@@ -120,33 +99,40 @@ export default function Home() {
 
         <div className="category-grid">
           {CATEGORIES.map((c, i) => (
-            <motion.button
+            <motion.div
               key={c.id}
-              className={`category-card category-card--${i === 0 ? 'wide' : ''}`}
               variants={fadeUp}
               initial="hidden"
               whileInView="show"
               viewport={{ once: true }}
-              onClick={() => goShop(c.id)}
+              className={i === 0 ? 'category-card--wide' : undefined}
             >
-              <img
-                src={img(c.image, 800)}
-                alt={c.title}
-                loading="lazy"
-              />
-              <span className="category-card__overlay" />
-              <span className="category-card__body">
-                <span className="category-card__tag">{c.tagline}</span>
-                <span className="category-card__title">{c.title}</span>
-                <span className="category-card__cta">
-                  Shop now{' '}
-                  <Icon
-                    name="arrowRight"
-                    size={16}
-                  />
+              <Link
+                to={`/shop/${c.id}`}
+                className="category-card"
+                onClick={openShop}
+              >
+                <img
+                  src={img(c.image, 800)}
+                  srcSet={imgSrcSet(c.image, [400, 600, 800])}
+                  sizes="(min-width: 768px) 25vw, 50vw"
+                  alt={c.title}
+                  loading="lazy"
+                />
+                <span className="category-card__overlay" />
+                <span className="category-card__body">
+                  <span className="category-card__tag">{c.tagline}</span>
+                  <span className="category-card__title">{c.title}</span>
+                  <span className="category-card__cta">
+                    Shop now{' '}
+                    <Icon
+                      name="arrowRight"
+                      size={16}
+                    />
+                  </span>
                 </span>
-              </span>
-            </motion.button>
+              </Link>
+            </motion.div>
           ))}
         </div>
       </section>
@@ -158,11 +144,12 @@ export default function Home() {
             <p className="overline">Just dropped</p>
             <h2 className="section-head__title">New arrivals</h2>
           </div>
-          <button
+          <Link
+            to="/shop"
             className="section-head__link"
             onClick={() => {
+              dispatch(resetFilters())
               dispatch(setNewOnly(true))
-              goShop()
             }}
           >
             See all new{' '}
@@ -170,7 +157,7 @@ export default function Home() {
               name="arrowRight"
               size={18}
             />
-          </button>
+          </Link>
         </header>
         <div className="product-grid">
           {newArrivals.map((p, i) => (
@@ -187,6 +174,11 @@ export default function Home() {
       <section className="editorial">
         <img
           src={img('photo-1483985988355-763728e1935b', 1400)}
+          srcSet={imgSrcSet(
+            'photo-1483985988355-763728e1935b',
+            [600, 900, 1400]
+          )}
+          sizes="(min-width: 1024px) 56vw, 100vw"
           alt=""
           className="editorial__img"
           loading="lazy"
@@ -198,12 +190,13 @@ export default function Home() {
             From tailored coats to featherweight knits, discover the pieces our
             stylists are reaching for right now.
           </p>
-          <button
+          <Link
+            to="/shop"
             className="btn"
-            onClick={() => goShop()}
+            onClick={openShop}
           >
             Explore the collection
-          </button>
+          </Link>
         </div>
       </section>
 

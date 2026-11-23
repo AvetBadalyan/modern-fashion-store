@@ -1,0 +1,12 @@
+# Modern Fashion Store
+
+> A demo fashion e-commerce storefront built with React, Redux Toolkit and Vite. Products are sample data and no real orders are taken.
+
+## Pages
+
+- [Home](https://modern-fashion-store-theta.vercel.app/): Featured collections, new arrivals and best sellers
+- [Shop all products](https://modern-fashion-store-theta.vercel.app/shop): Browse and filter the full catalog
+- [Women](https://modern-fashion-store-theta.vercel.app/shop/women): Women's clothing
+- [Men](https://modern-fashion-store-theta.vercel.app/shop/men): Men's clothing
+- [Shipping and returns](https://modern-fashion-store-theta.vercel.app/shipping-returns): Delivery and return policy
+- [Size guide](https://modern-fashion-store-theta.vercel.app/size-guide): Measurement charts

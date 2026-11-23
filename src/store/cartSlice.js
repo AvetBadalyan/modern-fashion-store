@@ -1,11 +1,19 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { loadState } from './storage.js'
+import { loadList } from './storage.js'
 
 // A cart line is unique per (product id + size + color).
 const lineKey = (id, size, color) => `${id}::${size}::${color}`
 
+// Ignore stored lines that are not usable cart lines.
+const isValidLine = (line) =>
+  line &&
+  typeof line.key === 'string' &&
+  typeof line.price === 'number' &&
+  Number.isInteger(line.quantity) &&
+  line.quantity > 0
+
 const initialState = {
-  items: loadState('cart', [])
+  items: loadList('cart').filter(isValidLine)
 }
 
 const cartSlice = createSlice({
@@ -30,7 +38,7 @@ const cartSlice = createSlice({
             id: product.id,
             name: product.name,
             price: product.price,
-            imageUrl: product.imageUrl,
+            imageUrl: product.imageUrlSmall,
             brand: product.brand,
             category: product.category,
             size,

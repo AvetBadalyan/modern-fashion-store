@@ -3,8 +3,8 @@ import Icon from '@/components/common/Icon.jsx'
 import Price from '@/components/common/Price.jsx'
 import ProductBadges from '@/components/product/ProductBadges.jsx'
 import { useAppDispatch, useAppSelector } from '@/store/hooks.js'
-import { addToast, openQuickView } from '@/store/uiSlice.js'
-import { toggleWishlist } from '@/store/wishlistSlice.js'
+import { openQuickView } from '@/store/uiSlice.js'
+import { toggleWishlistItem } from '@/store/wishlistSlice.js'
 import { motion } from 'framer-motion'
 import { memo } from 'react'
 import { Link } from 'react-router-dom'
@@ -19,19 +19,8 @@ function ProductCard({ product, index = 0 }) {
     state.wishlist.ids.includes(product.id)
   )
 
-  const onWish = () => {
-    dispatch(toggleWishlist(product.id))
-    dispatch(
-      addToast(
-        wished ? 'Removed from wishlist' : 'Added to wishlist',
-        wished ? 'info' : 'success'
-      )
-    )
-  }
-
-  const onQuickView = () => {
-    dispatch(openQuickView(product.id))
-  }
+  const onWish = () => dispatch(toggleWishlistItem(product.id))
+  const onQuickView = () => dispatch(openQuickView(product.id))
 
   return (
     <motion.article
@@ -49,12 +38,16 @@ function ProductCard({ product, index = 0 }) {
       <div className="product-card__media">
         <img
           src={product.imageUrl}
+          srcSet={product.imageSrcSet}
+          sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
           alt={product.name}
           loading="lazy"
           className="product-card__img product-card__img--primary"
         />
         <img
           src={product.hoverImageUrl}
+          srcSet={product.hoverImageSrcSet}
+          sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
           alt=""
           aria-hidden="true"
           loading="lazy"
@@ -67,7 +60,7 @@ function ProductCard({ product, index = 0 }) {
         <Link
           to={`/product/${product.id}`}
           className="product-card__cover-link"
-          aria-label={product.name}
+          aria-hidden="true"
           tabIndex={-1}
         />
 

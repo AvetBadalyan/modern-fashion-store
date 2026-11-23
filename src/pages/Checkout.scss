@@ -74,6 +74,11 @@
     margin-top: $space-2;
   }
 
+  &__required-note {
+    font-size: $fs-sm;
+    color: var(--color-slate);
+  }
+
   &__disclaimer {
     font-size: $fs-sm;
     color: var(--color-mist);

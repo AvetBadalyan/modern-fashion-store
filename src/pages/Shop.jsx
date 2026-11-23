@@ -3,6 +3,7 @@ import ProductCard from '@/components/product/ProductCard.jsx'
 import FilterSidebar from '@/components/shop/FilterSidebar.jsx'
 import { CATEGORIES, SORT_OPTIONS } from '@/data/products.js'
 import { useFocusTrap } from '@/hooks/useFocusTrap.js'
+import { useModalDismiss } from '@/hooks/useModalDismiss.js'
 import { usePageTitle } from '@/hooks/usePageTitle.js'
 import {
   resetFilters,
@@ -22,6 +23,7 @@ import {
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import NotFound from './NotFound.jsx'
 import './Shop.scss'
 
 export default function Shop() {
@@ -32,29 +34,35 @@ export default function Shop() {
   const activeCount = useAppSelector(selectActiveFilterCount)
   const filtersOpen = useAppSelector(selectFiltersOpen)
 
-  // Keep the filter category in sync with the URL param.
-  useEffect(() => {
-    dispatch(setCategory(categoryId ?? 'all'))
-  }, [categoryId, dispatch])
+  // The URL decides the category. Unknown ids (/shop/foo) show the 404 page.
+  const category = CATEGORIES.find((c) => c.id === categoryId)
+  const isUnknownCategory = categoryId !== undefined && !category
+  const activeCategory = category ? category.id : 'all'
 
-  // Lock scroll while the mobile filter drawer is open.
+  // Keep the filter category in sync with the URL.
   useEffect(() => {
-    document.body.style.overflow = filtersOpen ? 'hidden' : ''
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [filtersOpen])
+    dispatch(setCategory(activeCategory))
+  }, [activeCategory, dispatch])
 
-  // Trap focus inside the mobile filter drawer while it is open.
+  // Close the mobile filter drawer when leaving the page, so it is not
+  // still "open" in Redux when the shop is visited again.
+  useEffect(() => {
+    return () => dispatch(closeFilters())
+  }, [dispatch])
+
+  // Mobile filter drawer: Escape closes it, body scroll is locked, and focus
+  // stays inside while it is open (same behaviour as the other overlays).
   const filterDrawerRef = useRef(null)
   useFocusTrap(filterDrawerRef, filtersOpen)
+  useModalDismiss(filtersOpen, () => dispatch(closeFilters()))
 
-  const category = CATEGORIES.find((c) => c.id === filters.category)
   const heading = category ? category.title : 'All Products'
   const tagline = category
     ? category.tagline
     : 'The full collection, curated for the season.'
-  usePageTitle(heading)
+  usePageTitle(isUnknownCategory ? 'Page Not Found' : heading)
+
+  if (isUnknownCategory) return <NotFound />
 
   return (
     <div className="shop">
@@ -82,6 +90,7 @@ export default function Shop() {
         </aside>
 
         <div className="shop__content">
+          <h2 className="visually-hidden">Products</h2>
           {/* Toolbar */}
           <div className="shop__toolbar">
             <button
@@ -132,10 +141,7 @@ export default function Shop() {
 
           {/* Grid or empty state */}
           {products.length > 0 ? (
-            <motion.div
-              layout
-              className="product-grid"
-            >
+            <div className="product-grid">
               {products.map((p, i) => (
                 <ProductCard
                   key={p.id}
@@ -143,14 +149,14 @@ export default function Shop() {
                   index={i}
                 />
               ))}
-            </motion.div>
+            </div>
           ) : (
             <div className="shop__empty">
               <Icon
                 name="search"
                 size={40}
               />
-              <h3>No products match your filters</h3>
+              <h2>No products match your filters</h2>
               <p>Try adjusting or clearing your filters to see more.</p>
               <button
                 className="btn btn--outline"
@@ -186,7 +192,7 @@ export default function Shop() {
               transition={{ type: 'tween', duration: 0.3 }}
             >
               <div className="shop__drawer-head">
-                <h3>Filters</h3>
+                <h2>Filters</h2>
                 <button
                   onClick={() => dispatch(closeFilters())}
                   aria-label="Close"

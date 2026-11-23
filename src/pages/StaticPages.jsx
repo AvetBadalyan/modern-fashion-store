@@ -1,4 +1,6 @@
 import Icon from '@/components/common/Icon.jsx'
+import { MEN_CHART, SHOE_CHART, WOMEN_CHART } from '@/data/sizeCharts.js'
+import { FREE_SHIPPING_THRESHOLD, SHIPPING_COST } from '@/data/store.js'
 import { usePageTitle } from '@/hooks/usePageTitle.js'
 import { Link } from 'react-router-dom'
 import './StaticPages.scss'
@@ -31,21 +33,15 @@ export function ShippingReturns() {
       <section className="static-page__section">
         <h2>Shipping</h2>
         <p>
-          We offer free standard shipping on all orders over $150. Orders are
-          typically processed within 1-2 business days and delivered within 3-7
-          business days depending on your location.
+          We offer free standard shipping on all orders over $
+          {FREE_SHIPPING_THRESHOLD}. Orders are typically processed within 1-2
+          business days and delivered within 3-7 business days depending on your
+          location.
         </p>
         <ul>
           <li>
-            <strong>Standard Shipping:</strong> 3-7 business days — Free on
-            orders over $150, otherwise $12
-          </li>
-          <li>
-            <strong>Express Shipping:</strong> 1-3 business days — $18
-          </li>
-          <li>
-            <strong>Next Day Delivery:</strong> Order by 2pm for next business
-            day — $25
+            <strong>Standard shipping:</strong> 3-7 business days. Free on
+            orders over ${FREE_SHIPPING_THRESHOLD}, otherwise ${SHIPPING_COST}.
           </li>
         </ul>
       </section>
@@ -66,22 +62,23 @@ export function ShippingReturns() {
             Refunds are processed within 5-7 business days of receiving your
             return
           </li>
-          <li>Sale items are final sale and cannot be returned</li>
         </ul>
       </section>
 
       <section className="static-page__section">
-        <h2>How to Return</h2>
+        <h2>How to return</h2>
         <ol>
-          <li>Log into your account and go to Order History</li>
-          <li>Select the order containing the item(s) you wish to return</li>
-          <li>Click "Start Return" and follow the prompts</li>
           <li>
-            Print your prepaid shipping label and drop off at any carrier
-            location
+            <Link to="/contact">Contact us</Link> with your order number
           </li>
+          <li>We email you a prepaid return label</li>
+          <li>Drop the parcel off at any carrier location</li>
         </ol>
       </section>
+
+      <p className="static-page__disclaimer">
+        <em>This is a demo store. No orders are shipped.</em>
+      </p>
     </PageLayout>
   )
 }
@@ -94,161 +91,34 @@ export function SizeGuidePage() {
         measurements are body measurements in inches unless otherwise noted.
       </p>
 
-      <section className="static-page__section">
-        <h2>Women's Apparel</h2>
-        <div className="static-page__table-wrap">
-          <table className="static-page__table">
-            <thead>
-              <tr>
-                <th>Size</th>
-                <th>Chest</th>
-                <th>Waist</th>
-                <th>Hip</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>XS</td>
-                <td>32-34</td>
-                <td>25-27</td>
-                <td>35-37</td>
-              </tr>
-              <tr>
-                <td>S</td>
-                <td>35-37</td>
-                <td>28-30</td>
-                <td>38-40</td>
-              </tr>
-              <tr>
-                <td>M</td>
-                <td>38-40</td>
-                <td>31-33</td>
-                <td>41-43</td>
-              </tr>
-              <tr>
-                <td>L</td>
-                <td>41-43</td>
-                <td>34-36</td>
-                <td>44-46</td>
-              </tr>
-              <tr>
-                <td>XL</td>
-                <td>44-46</td>
-                <td>37-40</td>
-                <td>47-49</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className="static-page__section">
-        <h2>Men's Apparel</h2>
-        <div className="static-page__table-wrap">
-          <table className="static-page__table">
-            <thead>
-              <tr>
-                <th>Size</th>
-                <th>Chest</th>
-                <th>Waist</th>
-                <th>Hip</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>XS</td>
-                <td>34-36</td>
-                <td>28-30</td>
-                <td>34-36</td>
-              </tr>
-              <tr>
-                <td>S</td>
-                <td>36-38</td>
-                <td>30-32</td>
-                <td>36-38</td>
-              </tr>
-              <tr>
-                <td>M</td>
-                <td>38-40</td>
-                <td>32-34</td>
-                <td>38-40</td>
-              </tr>
-              <tr>
-                <td>L</td>
-                <td>40-42</td>
-                <td>34-36</td>
-                <td>40-42</td>
-              </tr>
-              <tr>
-                <td>XL</td>
-                <td>42-44</td>
-                <td>36-38</td>
-                <td>42-44</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className="static-page__section">
-        <h2>Shoe Sizes</h2>
-        <div className="static-page__table-wrap">
-          <table className="static-page__table">
-            <thead>
-              <tr>
-                <th>EU</th>
-                <th>UK</th>
-                <th>US</th>
-                <th>Foot Length (cm)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>38</td>
-                <td>5</td>
-                <td>6</td>
-                <td>24.1</td>
-              </tr>
-              <tr>
-                <td>39</td>
-                <td>6</td>
-                <td>7</td>
-                <td>24.8</td>
-              </tr>
-              <tr>
-                <td>40</td>
-                <td>6.5</td>
-                <td>7.5</td>
-                <td>25.4</td>
-              </tr>
-              <tr>
-                <td>41</td>
-                <td>7.5</td>
-                <td>8.5</td>
-                <td>26.0</td>
-              </tr>
-              <tr>
-                <td>42</td>
-                <td>8</td>
-                <td>9</td>
-                <td>26.7</td>
-              </tr>
-              <tr>
-                <td>43</td>
-                <td>9</td>
-                <td>10</td>
-                <td>27.3</td>
-              </tr>
-              <tr>
-                <td>44</td>
-                <td>9.5</td>
-                <td>10.5</td>
-                <td>27.9</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+      {[WOMEN_CHART, MEN_CHART, SHOE_CHART].map((chart) => (
+        <section
+          key={chart.title}
+          className="static-page__section"
+        >
+          <h2>{chart.title}</h2>
+          <div className="static-page__table-wrap">
+            <table className="static-page__table">
+              <thead>
+                <tr>
+                  {chart.head.map((h) => (
+                    <th key={h}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {chart.rows.map((row) => (
+                  <tr key={row[0]}>
+                    {row.map((cell, i) => (
+                      <td key={i}>{cell}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ))}
 
       <section className="static-page__section">
         <h2>How to Measure</h2>

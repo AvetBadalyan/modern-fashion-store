@@ -6,7 +6,7 @@ export default function SizeSelector({ sizes, selected, onSelect, error }) {
   return (
     <div
       className={`size-selector ${error ? 'has-error' : ''}`}
-      role="radiogroup"
+      role="group"
       aria-label="Select size"
     >
       {sizes.map((size) => (

@@ -9,6 +9,10 @@ const UNSPLASH = 'https://images.unsplash.com'
 export const img = (id, w = 800) =>
   `${UNSPLASH}/${id}?w=${w}&q=80&auto=format&fit=crop`
 
+/** Build a `srcSet` string so the browser picks the smallest sufficient file. */
+export const imgSrcSet = (id, widths = [400, 600, 800]) =>
+  widths.map((w) => `${img(id, w)} ${w}w`).join(', ')
+
 export const CATEGORIES = [
   {
     id: 'women',
@@ -616,7 +620,9 @@ export const PRODUCTS = RAW.map((p) => ({
     : 0,
   imageUrl: img(p.image, 800),
   imageUrlSmall: img(p.image, 500),
+  imageSrcSet: imgSrcSet(p.image),
   hoverImageUrl: img(p.hoverImage, 800),
+  hoverImageSrcSet: imgSrcSet(p.hoverImage),
   categoryTitle:
     CATEGORIES.find((c) => c.id === p.category)?.title ?? p.category
 }))

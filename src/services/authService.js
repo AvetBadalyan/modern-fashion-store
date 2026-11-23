@@ -79,7 +79,7 @@ export const authService = {
     await delay()
 
     const users = readUsers()
-    const key = email.toLowerCase()
+    const key = email.trim().toLowerCase()
 
     // Check if email already exists
     if (users[key]) {
@@ -114,7 +114,7 @@ export const authService = {
     await delay()
 
     const users = readUsers()
-    const key = email.toLowerCase()
+    const key = email.trim().toLowerCase()
     const record = users[key]
 
     // Check credentials

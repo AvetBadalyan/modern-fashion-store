@@ -49,7 +49,6 @@ self-contained and deployable as a static site.
 ### User Accounts
 
 - **Sign up / sign in** with mock auth service (JWT-shaped tokens)
-- **Password hashing** with Web Crypto API (SHA-256 + salt)
 - **Saved shipping addresses** for returning customers
 - **Order history** that reconciles guest + signed-in orders by email, with
   expandable order detail (line items, cost breakdown, shipping address) and a
@@ -250,7 +249,7 @@ implementations should:
 - Add CSRF protection and rate limiting
 - Validate all inputs server-side
 
-The mock auth demonstrates the patterns (salted hashes, token structure) without
+The mock auth demonstrates the patterns (session management, token structure) without
 the server infrastructure.
 
 ---

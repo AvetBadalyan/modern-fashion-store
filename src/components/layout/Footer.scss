@@ -64,7 +64,7 @@
     flex-direction: column;
     gap: $space-3;
 
-    h4 {
+    h2 {
       font-family: $font-body;
       font-size: $fs-sm;
       letter-spacing: $tracking-label;
@@ -85,7 +85,7 @@
   }
 
   &__newsletter {
-    h4 {
+    h2 {
       font-family: $font-body;
       font-size: $fs-sm;
       letter-spacing: $tracking-label;
@@ -110,6 +110,9 @@
         background: none;
         border: none;
         color: $color-white;
+        // Ensure minimum 44px touch target height (WCAG 2.5.5)
+        min-height: 44px;
+        padding-block: $space-2;
 
         &::placeholder {
           color: rgba($color-white, 0.45);
@@ -130,6 +133,13 @@
       button {
         color: $color-white;
         display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        // Ensure minimum 44x44px touch target (WCAG 2.5.5)
+        min-width: 44px;
+        min-height: 44px;
+        margin: -$space-2;
+        padding: $space-2;
         transition: opacity $transition-fast;
 
         &:hover {

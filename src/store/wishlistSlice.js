@@ -1,8 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { loadState } from './storage.js'
+import { loadList } from './storage.js'
+import { addToast } from './uiSlice.js'
 
 const initialState = {
-  ids: loadState('wishlist', [])
+  ids: loadList('wishlist')
 }
 
 const wishlistSlice = createSlice({
@@ -24,6 +25,18 @@ const wishlistSlice = createSlice({
 })
 
 export const { toggleWishlist, clearWishlist } = wishlistSlice.actions
+
+// Toggle a product and show the same toast everywhere (card, quick view, page).
+export const toggleWishlistItem = (id) => (dispatch, getState) => {
+  const wasWished = getState().wishlist.ids.includes(id)
+  dispatch(toggleWishlist(id))
+  dispatch(
+    addToast(
+      wasWished ? 'Removed from wishlist' : 'Added to wishlist',
+      wasWished ? 'info' : 'success'
+    )
+  )
+}
 
 export default wishlistSlice.reducer
 

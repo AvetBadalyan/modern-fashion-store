@@ -118,17 +118,17 @@
   letter-spacing: $tracking-label;
   text-transform: uppercase;
   border-radius: $radius-sm;
-  background: var(--color-badge-new-bg);
-  color: var(--color-badge-new-fg);
+  background: $color-ink;
+  color: $color-white;
 
   &--sale {
-    background: var(--color-sale);
-    color: #ffffff;
+    background: $badge-sale;
+    color: $color-white;
   }
 
   &--new {
-    background: var(--color-success);
-    color: #ffffff;
+    background: $badge-new;
+    color: $color-white;
   }
 }
 

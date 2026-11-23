@@ -192,7 +192,7 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: #ffffff;
-    background: var(--color-accent);
+    background: var(--color-accent-fill);
     border-radius: $radius-pill;
     opacity: 0;
     transform: translateY(8px);
@@ -203,7 +203,7 @@
       box-shadow $transition-fast;
 
     &:hover {
-      background: var(--color-accent-hover);
+      background: var(--color-accent-fill-hover);
     }
 
     &:focus-visible {
@@ -256,7 +256,7 @@
 // --- Reusable product grid -------------------------------------------------
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: $space-4 $space-4;
 
   @include bp(sm) {
@@ -264,11 +264,11 @@
   }
 
   @include bp(md) {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   @include bp(lg) {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: $space-6 $space-5;
   }
 }
